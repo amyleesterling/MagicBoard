@@ -253,8 +253,20 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        canvas.addEventListener('mousedown', () => drawing = true);
-        canvas.addEventListener('mouseup', () => drawing = false);
+        // Start a fresh path on press so a new stroke doesn't connect to the previous one.
+        canvas.addEventListener('mousedown', (e) => {
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.clientX, e.clientY);
+        });
+        canvas.addEventListener('mouseup', () => {
+            drawing = false;
+            ctx.beginPath();
+        });
+        canvas.addEventListener('mouseleave', () => {
+            drawing = false;
+            ctx.beginPath();
+        });
         canvas.addEventListener('mousemove', (e) => {
             if (!drawing) return;
             ctx.lineWidth = 15;
