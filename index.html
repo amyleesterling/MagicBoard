@@ -98,17 +98,19 @@
             left: 20px;
             width: 60px;
             height: 60px;
-            padding: 0;
+            box-sizing: border-box;
+            padding: 7px;
             border: 4px solid white;
             border-radius: 50%;
             cursor: pointer;
-            background: none;
+            /* Rainbow ring so it's obvious this is a color picker */
+            background: conic-gradient(red, orange, yellow, lime, aqua, blue, magenta, red);
             box-shadow: 0 6px #00000044;
             z-index: 30;
         }
         #color-picker::-webkit-color-swatch-wrapper { padding: 0; }
-        #color-picker::-webkit-color-swatch { border: none; border-radius: 50%; }
-        #color-picker::-moz-color-swatch { border: none; border-radius: 50%; }
+        #color-picker::-webkit-color-swatch { border: 2px solid white; border-radius: 50%; }
+        #color-picker::-moz-color-swatch { border: 2px solid white; border-radius: 50%; }
 
         @media (max-width: 600px) {
             #color-picker { width: 48px; height: 48px; bottom: 14px; left: 14px; }
