@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sophia and Cora's SFX Website</title>
     <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
     
@@ -102,11 +104,116 @@
             from { opacity: 1; transform: translateY(0); }
             to { opacity: 0; transform: translateY(-50px); }
         }
+
+        h1 {
+            text-align: center;
+            padding: 0 15px;
+            font-size: 2em;
+        }
+
+        /* Mobile / small screens */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.4em; }
+
+            .btn {
+                padding: 22px;
+                font-size: 34px;
+                margin: 8px;
+                border-radius: 20px;
+            }
+
+            #disco-btn { font-size: 16px; padding: 14px; }
+            #clear-btn { font-size: 14px; padding: 12px; }
+        }
+
+        /* Silly Champion Popup */
+        #champ-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        #champ-overlay.show { display: flex; }
+
+        .champ-card {
+            background: linear-gradient(160deg, #fff7d6, #ffe08a);
+            color: #5a3d00;
+            border: 6px dashed #d49a00;
+            border-radius: 30px;
+            padding: 30px 40px;
+            text-align: center;
+            max-width: 90vw;
+            box-shadow: 0 20px 50px #00000055;
+            transform: rotate(-2deg);
+            animation: champ-pop 0.5s cubic-bezier(.2,1.6,.4,1) both;
+        }
+
+        @keyframes champ-pop {
+            0% { transform: scale(0.3) rotate(12deg); opacity: 0; }
+            100% { transform: scale(1) rotate(-2deg); opacity: 1; }
+        }
+
+        .champ-medal {
+            font-size: 90px;
+            line-height: 1;
+            display: inline-block;
+            animation: champ-swing 1.2s ease-in-out infinite;
+            transform-origin: top center;
+        }
+
+        @keyframes champ-swing {
+            0%, 100% { transform: rotate(-12deg); }
+            50% { transform: rotate(12deg); }
+        }
+
+        .champ-title {
+            font-size: 34px;
+            font-weight: bold;
+            margin: 14px 0 6px;
+            text-shadow: 2px 2px 0 #fff, 4px 4px 0 #d49a00;
+        }
+
+        .champ-sub {
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .champ-btn {
+            background: #d49a00;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 12px 26px;
+            font-size: 20px;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 6px #a87a00;
+        }
+        .champ-btn:active { transform: translateY(4px); box-shadow: 0 2px #a87a00; }
+
+        @media (max-width: 600px) {
+            .champ-medal { font-size: 64px; }
+            .champ-title { font-size: 24px; }
+            .champ-sub { font-size: 15px; }
+        }
     </style>
 </head>
 <body id="main-body">
 
     <canvas id="drawing-board"></canvas>
+
+    <div id="champ-overlay" onclick="closeChamp(event)">
+        <div class="champ-card">
+            <div class="champ-medal">🥇</div>
+            <div class="champ-title">FASTEST MOUSE MOVER IN THE WEST!</div>
+            <div class="champ-sub">🤠 yeehaw, partner — ya caught the runnin' fella! 🏃‍♂️💨</div>
+            <button class="champ-btn" onclick="closeChamp(event)">Heck yeah! 🎉</button>
+        </div>
+    </div>
 
     <div class="ui-layer">
         <h1>Sophia and Cora's Clickety Website</h1>
@@ -117,7 +224,7 @@
             <button id="meow-btn" class="btn" onclick="megaEffect('meow', '🐱')">🐱</button>
             <button id="unicorn-btn" class="btn" onclick="megaEffect('unicorn', '🦄')">🦄</button>
             <button id="baby-unicorn-btn" class="btn" onclick="megaEffect('baby', '🦄')">🦄</button>
-            <button id="runaway-btn" class="btn" onmouseenter="runAway(this)" onclick="caughtIt()">🏃‍♂️</button>
+            <button id="runaway-btn" class="btn" onmouseenter="runAway(this)" ontouchstart="runAway(this)" onclick="caughtIt()">🏃‍♂️</button>
         </div>
 
         <div style="margin-top: 20px; pointer-events: auto;">
@@ -166,26 +273,50 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        // 2. The "Fair" Runaway Button
+        // 2. The Runaway Button — dodges within the viewport, never off-screen
         function runAway(btn) {
-            // 150ms delay gives fast fingers a chance to click!
-            setTimeout(() => {
-                btn.style.position = 'absolute';
-                const x = Math.random() * (window.innerWidth - 200);
-                const y = Math.random() * (window.innerHeight - 200);
-                btn.style.left = x + 'px';
-                btn.style.top = y + 'px';
-            }, 150); 
+            // Pin to the viewport so left/top are in screen coordinates and
+            // clamping against window dimensions is correct.
+            if (getComputedStyle(btn).position !== 'fixed') {
+                const rect = btn.getBoundingClientRect();
+                btn.style.position = 'fixed';
+                btn.style.margin = '0';
+                btn.style.left = rect.left + 'px';
+                btn.style.top = rect.top + 'px';
+            }
+
+            const margin = 10; // keep a little gap from the edges
+            const maxX = window.innerWidth - btn.offsetWidth - margin;
+            const maxY = window.innerHeight - btn.offsetHeight - margin;
+
+            const rect = btn.getBoundingClientRect();
+            const maxOffset = 200; // hop a good distance away
+            let x = rect.left + (Math.random() * 2 - 1) * maxOffset;
+            let y = rect.top + (Math.random() * 2 - 1) * maxOffset;
+
+            // clamp so the button always stays fully on the page
+            x = Math.max(margin, Math.min(x, maxX));
+            y = Math.max(margin, Math.min(y, maxY));
+
+            btn.style.left = x + 'px';
+            btn.style.top = y + 'px';
         }
 
         function caughtIt() {
             if(sounds.win) sounds.win.play();
-            jsConfetti.addConfetti({ 
-                emojis: ['🏆', '👑', '⭐', '💎'], 
-                emojiSize: 100, 
-                confettiNumber: 100 
+            jsConfetti.addConfetti({
+                emojis: ['🥇', '🤠', '⭐', '🏆'],
+                emojiSize: 100,
+                confettiNumber: 100
             });
-            alert("SOPHIA AND CORA ARE THE CHAMPIONS!");
+            document.getElementById('champ-overlay').classList.add('show');
+        }
+
+        function closeChamp(event) {
+            // Only close when clicking the dim backdrop or the button, not the card itself
+            if (event.target.id === 'champ-overlay' || event.target.classList.contains('champ-btn')) {
+                document.getElementById('champ-overlay').classList.remove('show');
+            }
         }
 
         // 3. Disco Ceiling Shower
