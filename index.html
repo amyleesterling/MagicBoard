@@ -222,7 +222,7 @@
             <button id="woosh-btn" class="btn" onclick="megaEffect('woosh', '☁️')">☁️</button>
             <button id="meow-btn" class="btn" onclick="megaEffect('meow', '🐱')">🐱</button>
             <button id="baby-unicorn-btn" class="btn" onclick="megaEffect('baby', '🦄')">🦄</button>
-            <button id="runaway-btn" class="btn" onmouseenter="runAway(this)" ontouchstart="runAway(this)" onclick="caughtIt()">🏃‍♂️</button>
+            <button id="runaway-btn" class="btn" onmouseenter="runAway(this)" ontouchstart="pokeRunaway(this, event)" onclick="caughtIt()">🏃‍♂️</button>
         </div>
 
         <div style="margin-top: 20px; pointer-events: auto;">
@@ -297,6 +297,21 @@
 
             btn.style.left = x + 'px';
             btn.style.top = y + 'px';
+        }
+
+        // Mobile tap chase: no hover, so the button flees on each tap and is
+        // caught after a few successful chase-taps.
+        let runawayTaps = 0;
+        const TAPS_TO_CATCH = 5;
+        function pokeRunaway(btn, event) {
+            event.preventDefault(); // stop the synthesized click so caughtIt isn't double-fired
+            runawayTaps++;
+            if (runawayTaps >= TAPS_TO_CATCH) {
+                runawayTaps = 0;
+                caughtIt();
+            } else {
+                runAway(btn);
+            }
         }
 
         function caughtIt() {
